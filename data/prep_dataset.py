@@ -6,9 +6,9 @@ import argparse
 def process_fn(entry):
     all_test_inputs = []
     all_test_outputs = []
-    for entry in entry["output"]:
-        all_test_inputs.append(entry["input"])
-        all_test_outputs.append(entry["output"])
+    for io_pair in entry["input_output"]:
+        all_test_inputs.append(io_pair["input"])
+        all_test_outputs.append(io_pair["output"])
 
     data = {
         "query": entry["query"],
@@ -47,7 +47,7 @@ def main():
     
     print("Done!")
     print(f"\nSample problems:")
-    train_split = processed_dataset['train']
+    train_split = processed_dataset
     for i in range(5):
         print(f"Query: {train_split[i]['query']}")
         print(f"Import prefix: {train_split[i]['import_prefix']}")

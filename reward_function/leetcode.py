@@ -1,5 +1,6 @@
 
 import re
+import ast
 
 # Reference: https://github.com/allenai/olmes/blob/main/oe_eval/tasks/oe_eval_tasks/deepseek_leetcode.py
 class LeetCode:
@@ -21,12 +22,16 @@ class LeetCode:
         else:
             return self._fallback_code_extraction(continuation)
 
-    def is_compilable(self, completion: str):
-        # TODO: this is only checking whether the code itself is compilable, not whether the whole code with imports and test cases is compilable. (may happen in sandbox fusion)
+    def is_compilable(self, completion: str) -> float:
+        """
+        Check if the code is compilable (syntax check only).
+        """
         try:
-            compile(completion, "<string>", "exec")
+            ast.parse(completion)
             return 1.0
-        except Exception as e:
+        except SyntaxError:
+            return 0.0
+        except Exception:
             return 0.0
 
     # Reference: https://github.com/volcengine/verl/blob/main/verl/utils/reward_score/__init__.py#L74
