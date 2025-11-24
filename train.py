@@ -35,7 +35,7 @@ class Config:
     base_url: str | None = None
     log_path: str = "outputs/rl-leetcode/llama-3.2-1b"
     model_name: str = "meta-llama/Llama-3.2-1B"
-    epochs: int = 50
+    epochs: int = 5
     batch_size: int = 64
     group_size: int = 16
     learning_rate: float = 1e-5
@@ -49,6 +49,7 @@ class Config:
     max_train_samples: int | None = 600     # Based on split size of leetcode: Easy: 638 | Medium: 1397 | Hard: 606. Keep each bin to have the same sample size
     seed: int = 42
 
+    wandb_entity: str | None = "lorena-yantianyi1020"
     wandb_project: str | None = "COMS4705-reward-hacking-entropy"
 
     @chz.init_property
@@ -149,6 +150,7 @@ def main(config: Config):
     # Init wandb
     try:
         wandb.init(
+            entity=config.wandb_entity,
             project=config.wandb_project,
             name=config.wandb_run_name,
             config=vars(config),
@@ -203,7 +205,7 @@ def main(config: Config):
             # Save checkpoint
             if step % config.save_every == 0 and step > 0:
                 logger.info(f"Saving checkpoint at step {step}...")
-                training_client.save_state(path=os.path.join(config.log_path, f"checkpoint_{step:06d}"))
+                training_client.save_state(os.path.join(config.log_path, f"checkpoint_{step:06d}"))
             # Get training batch
             batch_start = batch_idx * config.batch_size
             batch_end = min((batch_idx + 1) * config.batch_size, len(train_dataset))

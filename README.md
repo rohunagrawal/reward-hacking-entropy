@@ -40,6 +40,7 @@ python data/prep_dataset.py
   - ```check_correctness()```: use SandBox Fusion. Fall back to prime_code if SandBox Fusion is not available.
 
 # Run an RL training run
+Modify port number and task difficulty in [train.sh](train.sh)
 ```
-python train.py
+bash train.sh
 ```
