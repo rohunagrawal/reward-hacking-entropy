@@ -83,7 +83,7 @@ class LeetCode:
 
         # f: correctness
         score, final_metadata = self.check_correctness(
-            code_solution,
+            continuation,
             res["test_inputs_outputs"],
             res["import_prefix"]
         )
