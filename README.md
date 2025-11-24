@@ -4,9 +4,12 @@ Set up your favorite virtual environment and then:
 ```
 git clone git@github.com:rohunagrawal/reward-hacking-entropy.git
 cd reward-hacking-entropy
-conda create -n hack python==3.10
+conda create -n hack python==3.11
 conda activate hack
 pip install -r requirements.txt
+
+wandb login
+hf auth login
 ```
 
 # Set your tinker API key
@@ -18,10 +21,18 @@ export TINKER_API_KEY=...
 ```
 python data/prep_dataset.py
 ```
+- Split size:
+  - Easy: 638
+  - Medium: 1397
+  - Hard: 606
 
 # Reward Function for Coding
 - Host [SandBox Fusion](https://bytedance.github.io/SandboxFusion/docs/docs/get-started#local-deployment) (create a sandbox to test code safely):
-  - ```docker run -it -p 8000:8000 volcengine/sandbox-fusion:server-20250609``` 
+  - ```docker run -it -p 8000:8080 volcengine/sandbox-fusion:server-20250609``` 
+  - Test connection:
+    ```
+    curl 'http://localhost:8000/run_code'   -H 'Content-Type: application/json'   --data-raw '{"code": "print(\"Hello, world!\")", "language": "python"}'
+    ```
   - Pass in the url when creating the LeetCode() object below.
 - Create LeetCode() object: class defined in [leetcode.py](reward_function/leetcode.py)
   - Entry function: ```process_code_result()```. Returns a dictionary with ```is_compilable_reward``` and ```correctness_reward``` 

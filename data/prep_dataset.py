@@ -26,7 +26,7 @@ def process_fn(entry):
 
 def main():
     parser = argparse.ArgumentParser(description='Load LeetCode dataset')
-    parser.add_argument('--output', type=str, default='leetcode',
+    parser.add_argument('--output', type=str, default='data/leetcode',
                        help='Output dataset name/path')
     parser.add_argument('--split', type=str, default='train',
                        help='Dataset split to use')

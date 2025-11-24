@@ -1,4 +1,8 @@
-lichess_move_prefixes/
 
 .idea/
 .venv/
+wandb/
+data/leetcode/
+
+reward_function/__pycache__/
+reward_function/sandbox_fusion/__pycache__/
