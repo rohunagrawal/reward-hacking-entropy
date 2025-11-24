@@ -195,6 +195,7 @@ def main(config: Config):
             t_start = time.time()
             step = global_step
             metrics: dict[str, float] = {
+                "progress/global_step": global_step,
                 "progress/epoch": epoch,
                 "progress/batch": batch_idx,
                 "optim/lr": config.learning_rate,
@@ -247,8 +248,8 @@ def main(config: Config):
                         )
                     )
 
-                    batch_futures.append(sample_futures)
-                    batch_prompts.append(prompt_tokens)
+                batch_futures.append(sample_futures)
+                batch_prompts.append(prompt_tokens)
 
             # Process results
             for i, (sample_futures, prompt_tokens) in enumerate(zip(batch_futures, batch_prompts)):

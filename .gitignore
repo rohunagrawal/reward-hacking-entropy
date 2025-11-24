@@ -4,5 +4,6 @@
 wandb/
 data/leetcode/
 
+outputs/
 reward_function/__pycache__/
 reward_function/sandbox_fusion/__pycache__/
