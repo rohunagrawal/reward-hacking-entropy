@@ -7,20 +7,22 @@ class LeetCode:
     def __init__(self,  sandbox_fusion_url: str = None):
         self.sandbox_fusion_url = sandbox_fusion_url
 
-    def _fallback_code_extraction(self, continuation: str) -> str:
-        codelist = re.split("\ndef|\nclass|\nif|\n#|\nprint", continuation)
-        if len(codelist) > 0:
-            return codelist[0]
+    def _markdown_code_extraction(self, completion: str) -> str:
+        if "```python" in completion:
+            solution = completion.split("```python")[-1].split("```")[0]
+        elif "```" in completion:
+            # Handle cases like ```\ncode\n```
+            parts = completion.split("```")
+            if len(parts) >= 2:
+                solution = parts[1]
+                # Remove potential language specifier like 'python\n'
+                if "\n" in solution:
+                    first_line, rest = solution.split("\n", 1)
+                    if first_line.strip().isalpha():  # Simple check for language name
+                        solution = rest
         else:
-            return ""
-
-    def _markdown_code_extraction(self, continuation: str) -> str:
-        p_code = re.compile(r"```python\n?(.*?)\n?```", flags=re.DOTALL)
-        code_blocks = p_code.findall(continuation)
-        if len(code_blocks) > 0:
-            return code_blocks[0]
-        else:
-            return self._fallback_code_extraction(continuation)
+            solution = None
+        return solution
 
     def is_compilable(self, completion: str) -> float:
         """
@@ -71,13 +73,13 @@ class LeetCode:
         continuation = res["completion"]
 
         # Extract code from the continuation
-        if "```python" in continuation:
-            code_solution = self._markdown_code_extraction(continuation)
-        else:
-            code_solution = self._fallback_code_extraction(continuation)
+        code_solution = self._markdown_code_extraction(continuation)
 
         # g: whether compilable
-        res["is_compilable_reward"] = self.is_compilable(code_solution)
+        if code_solution is None:
+            res["is_compilable_reward"] = 0.0
+        else:
+            res["is_compilable_reward"] = self.is_compilable(code_solution)
 
         # f: correctness
         score, final_metadata = self.check_correctness(
