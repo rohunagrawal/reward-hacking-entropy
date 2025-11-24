@@ -28,10 +28,10 @@ python data/prep_dataset.py
 
 # Reward Function for Coding
 - Host [SandBox Fusion](https://bytedance.github.io/SandboxFusion/docs/docs/get-started#local-deployment) (create a sandbox to test code safely):
-  - ```docker run -it -p 8000:8080 volcengine/sandbox-fusion:server-20250609``` 
+  - ```docker run -it -p YOUR_PORT_NUMBER:8080 volcengine/sandbox-fusion:server-20250609``` (Uvicorn always starts on port 8080 in docker. Map it to some port number on your machine)
   - Test connection:
     ```
-    curl 'http://localhost:8000/run_code'   -H 'Content-Type: application/json'   --data-raw '{"code": "print(\"Hello, world!\")", "language": "python"}'
+    curl 'http://localhost:YOUR_PORT_NUMBER/run_code' -H 'Content-Type: application/json'   --data-raw '{"code": "print(\"Hello, world!\")", "language": "python"}'
     ```
   - Pass in the url when creating the LeetCode() object below.
 - Create LeetCode() object: class defined in [leetcode.py](reward_function/leetcode.py)
