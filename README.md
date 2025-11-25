@@ -44,3 +44,15 @@ Modify port number and task difficulty in [train.sh](train.sh)
 ```
 bash train.sh
 ```
+- Checkpoints: 
+  - Name of ckpt is f"{config.log_path.replace('/', '_')}_checkpoint_{step:06d}". (I think) they are saved remotely on Tinker's server
+    - You'll get something like name=tinker://953697c9-8560-5244-a341-caf888b3beeb:train:0/weights/outputs_test_checkpoint_000001
+  - The names are saved in local txt file:
+    ```
+    # Output to txt file
+    with open(os.path.join(config.log_path, f"checkpoint_names.txt"), "a") as f:
+        f.write(saved_path + "\n")
+    with open(os.path.join(config.log_path, "latest_checkpoint.txt"), "w") as f:
+        f.write(saved_path + "\n")
+    ```
+  - If you use the same log_path, the code will try to read in latest_checkpoint.txt and resume from there.

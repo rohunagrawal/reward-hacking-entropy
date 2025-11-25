@@ -49,6 +49,7 @@ class Config:
     max_train_samples: int | None = 600     # Based on split size of leetcode: Easy: 638 | Medium: 1397 | Hard: 606. Keep each bin to have the same sample size
     seed: int = 42
 
+    use_wandb: bool = True
     wandb_entity: str | None = "lorena-yantianyi1020"
     wandb_project: str | None = "COMS4705-reward-hacking-entropy"
 
@@ -148,16 +149,17 @@ def main(config: Config):
         train_dataset = train_dataset.select(range(config.max_train_samples))
     
     # Init wandb
-    try:
-        wandb.init(
-            entity=config.wandb_entity,
-            project=config.wandb_project,
-            name=config.wandb_run_name,
+    if config.use_wandb:
+        try:
+            wandb.init(
+                entity=config.wandb_entity,
+                project=config.wandb_project,
+                name=config.wandb_run_name,
             config=vars(config),
-        )
-        logger.info(f"Initialized wandb run: {wandb.run}")
-    except Exception as e:
-        logger.warning(f"Failed to initialize wandb: {e}")
+            )
+            logger.info(f"Initialized wandb run: {wandb.run}")
+        except Exception as e:
+            logger.warning(f"Failed to initialize wandb: {e}")
     
     logger.info(f"Dataset loaded: {len(train_dataset)} examples")
 
@@ -169,15 +171,21 @@ def main(config: Config):
 
     # Setup training client
     service_client = tinker.ServiceClient(base_url=config.base_url)
-
-    # Check for existing checkpoint (simple check)
-    # TODO
-    # Note: Resume logic simplified as we removed checkpoint_utils. 
-    # If needed, one would load state from a file and pass to create_training_client_from_state.
     
     training_client = service_client.create_lora_training_client(
         base_model=config.model_name, rank=config.lora_rank
     )
+
+    # Check for existing checkpoint (simple check)
+    if os.path.exists(os.path.join(config.log_path, "latest_checkpoint.txt")):
+        with open(os.path.join(config.log_path, "latest_checkpoint.txt"), "r") as f:
+            latest_ckpt_path = f.read().strip()
+        training_client.load_state(latest_ckpt_path)
+        logger.info(f"Resuming from checkpoint: {latest_ckpt_path}")
+    else:
+        logger.info("No checkpoint found, starting fresh training")
+    # Note: Resume logic simplified as we removed checkpoint_utils. 
+    # If needed, one would load state from a file and pass to create_training_client_from_state.
 
     sampling_params = tinker.types.SamplingParams(
         max_tokens=config.max_tokens,
@@ -204,8 +212,13 @@ def main(config: Config):
 
             # Save checkpoint
             if step % config.save_every == 0 and step > 0:
-                logger.info(f"Saving checkpoint at step {step}...")
-                training_client.save_state(os.path.join(config.log_path, f"checkpoint_{step:06d}"))
+                saved_path = training_client.save_state(f"{config.log_path.replace('/', '_')}_checkpoint_{step:06d}").result().path
+                logger.info(f"Saved checkpoint at step {step} to {saved_path}")
+                # Output to txt file
+                with open(os.path.join(config.log_path, f"checkpoint_names.txt"), "a") as f:
+                    f.write(saved_path + "\n")
+                with open(os.path.join(config.log_path, "latest_checkpoint.txt"), "w") as f:
+                    f.write(saved_path + "\n")
             # Get training batch
             batch_start = batch_idx * config.batch_size
             batch_end = min((batch_idx + 1) * config.batch_size, len(train_dataset))
@@ -365,7 +378,9 @@ def main(config: Config):
 
     # Save final checkpoint
     logger.info("Saving final checkpoint...")
-    training_client.save_state(path=os.path.join(config.log_path, "final_checkpoint"))
+    final_ckpt_path = training_client.save_state(f"{config.log_path.replace('/', '_')}_final").result().path
+    with open(os.path.join(config.log_path, f"checkpoint_names.txt"), "a") as f:
+        f.write(final_ckpt_path + "\n")
     logger.info("Training completed")
     # Finish wandb run if it was started
     try:
