@@ -48,6 +48,7 @@ class Config:
     filter_difficulty: str | None = None # e.g., "Easy", "Medium", "Hard"
     max_train_samples: int | None = 600     # Based on split size of leetcode: Easy: 638 | Medium: 1397 | Hard: 606. Keep each bin to have the same sample size
     seed: int = 42
+    g_type: str = "is_compilable"  # TODO type of g reward to use, may change to llm as a judge
 
     use_wandb: bool = True
     wandb_entity: str | None = "lorena-yantianyi1020"
@@ -306,7 +307,7 @@ def main(config: Config):
                     
                     # Call LeetCode reward function
                     try:
-                        res = leetcode_eval.process_code_result(res)
+                        res = leetcode_eval.process_code_result(res, g_type=config.g_type)
                         f_score = res.get("correctness_reward", 0.0)
                         g_score = res.get("is_compilable_reward", 0.0)
                     except Exception as e:
@@ -370,6 +371,7 @@ def main(config: Config):
             metrics["reward/mean"] = sum(batch_rewards) / len(batch_rewards) if batch_rewards else 0.0
             metrics["reward/correctness_f"] = sum(batch_correctness) / len(batch_correctness) if batch_correctness else 0.0
             metrics["reward/compilable_g"] = sum(batch_compilable) / len(batch_compilable) if batch_compilable else 0.0
+            metrics["reward/f_minus_g"] = np.mean(np.array(batch_correctness) - np.array(batch_compilable)).item() if batch_correctness and batch_compilable else 0.0
             metrics["policy/entropy"] = sum(batch_entropies) / len(batch_entropies) if batch_entropies else 0.0
             
             log_metrics(metrics, step=step, log_dir=config.log_path)

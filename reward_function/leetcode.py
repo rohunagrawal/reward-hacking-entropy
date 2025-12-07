@@ -55,7 +55,7 @@ class LeetCode:
             score, final_metadata = prime_code.compute_score(completion, test_inputs_outputs, import_prefix, continuous=True)
         return score, final_metadata
 
-    def process_code_result(self, res: dict) -> dict:
+    def process_code_result(self, res: dict, g_type: str) -> dict:
         """
         res:
         {
@@ -79,7 +79,11 @@ class LeetCode:
         if code_solution is None:
             res["is_compilable_reward"] = 0.0
         else:
-            res["is_compilable_reward"] = self.is_compilable(code_solution)
+            if g_type == "is_compilable":
+                res["g_score"] = self.is_compilable(code_solution)
+            else:
+                # TODO: may change to llm as a judge or other weak reward models
+                raise ValueError(f"Unsupported g_type: {g_type}")
 
         # f: correctness
         score, final_metadata = self.check_correctness(
@@ -87,7 +91,7 @@ class LeetCode:
             res["test_inputs_outputs"],
             res["import_prefix"]
         )
-        res["correctness_reward"] = score
+        res["f_score"] = score      # correctness_reward
         res["correctness_metadata"] = final_metadata
 
         return res

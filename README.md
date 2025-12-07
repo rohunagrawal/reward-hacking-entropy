@@ -56,3 +56,27 @@ bash train.sh
         f.write(saved_path + "\n")
     ```
   - If you use the same log_path, the code will try to read in latest_checkpoint.txt and resume from there.
+
+# Get f & g of ckpts on held-out dataset
+- Run:
+  ```bash
+  python analysis/measure_f_g_on_heldout.py \
+      dataset_path="data/leetcode" \
+      training_output_dir="outputs/rl-leetcode/llama-3.2-1b/Easy" \
+      sandbox_url="http://localhost:YOUR_PORT_NUMBER/run_code" \
+      eval_batch_size=16
+  ```
+- Expected outputs:
+  - ```${training_output_dir}/avg_heldout_f_g_scores.json```: 
+    ```json
+    {
+        "checkpoint_name_1": {"avg_f": 0, "avg_g": 0, "avg_g_minus_f": 0},
+        "checkpoint_name_2": {...}
+    }
+    ```
+  - ```${training_output_dir}/heldout_g_minus_f_scores.png```
+- TODOs:
+  - [ ] Set held out dataset path
+  - [ ] Check config loading
+  - [ ] tokenizer renderer
+  - [ ] Consider running ckpts in parallel (depends on bottleneck from checking code solution)
