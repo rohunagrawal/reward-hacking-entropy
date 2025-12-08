@@ -77,7 +77,7 @@ class LeetCode:
 
         # g: whether compilable
         if code_solution is None:
-            res["is_compilable_reward"] = 0.0
+            res["g_score"] = 0.0
         else:
             if g_type == "is_compilable":
                 res["g_score"] = self.is_compilable(code_solution)

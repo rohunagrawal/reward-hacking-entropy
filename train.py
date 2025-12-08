@@ -308,8 +308,8 @@ def main(config: Config):
                     # Call LeetCode reward function
                     try:
                         res = leetcode_eval.process_code_result(res, g_type=config.g_type)
-                        f_score = res.get("correctness_reward", 0.0)
-                        g_score = res.get("is_compilable_reward", 0.0)
+                        f_score = res.get("f_score", 0.0)
+                        g_score = res.get("g_score", 0.0)
                     except Exception as e:
                         logger.error(f"Error processing code result: {e}")
                         f_score = 0.0
