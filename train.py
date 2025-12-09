@@ -53,6 +53,7 @@ class TrainingConfig:
     seed: int = 42
     g_type: str = "llm_judge"  # use LLM-as-judge by default; change to "is_compilable" for syntax-only
     g_judge_model_name: str | None = "meta-llama/Llama-3.2-3B"
+    g_judge_model_path: str | None = None  # if using a tinker:// URI for judge
     g_judge_base_url: str | None = None
     g_judge_temperature: float = 0.0
     g_judge_max_tokens: int = 8
@@ -189,6 +190,7 @@ def main(config: TrainingConfig):
     leetcode_eval = LeetCode(
         sandbox_fusion_url=config.sandbox_url,
         g_judge_model_name=config.g_judge_model_name,
+        g_judge_model_path=getattr(config, "g_judge_model_path", None),
         g_judge_base_url=config.g_judge_base_url,
         g_judge_temperature=config.g_judge_temperature,
         g_judge_max_tokens=config.g_judge_max_tokens,

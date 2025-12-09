@@ -15,12 +15,14 @@ class LeetCode:
         self,
         sandbox_fusion_url: str = None,
         g_judge_model_name: Optional[str] = None,
+        g_judge_model_path: Optional[str] = None,
         g_judge_base_url: Optional[str] = None,
         g_judge_temperature: float = 0.0,
         g_judge_max_tokens: int = 16,
     ):
         self.sandbox_fusion_url = sandbox_fusion_url
         self.g_judge_model_name = g_judge_model_name
+        self.g_judge_model_path = g_judge_model_path
         self.g_judge_base_url = g_judge_base_url
         self.g_judge_temperature = g_judge_temperature
         self.g_judge_max_tokens = g_judge_max_tokens
@@ -62,14 +64,23 @@ class LeetCode:
         """
         Lazily create the LLM judge client/tokenizer when g_type == "llm_judge".
         """
-        if self.g_judge_model_name is None:
-            raise ValueError("g_type='llm_judge' requires g_judge_model_name to be set.")
+        if self.g_judge_model_path is None and self.g_judge_model_name is None:
+            raise ValueError("g_type='llm_judge' requires g_judge_model_path or g_judge_model_name to be set.")
 
         if self._judge_sampling_client is not None:
             return
 
         service_client = tinker.ServiceClient(base_url=self.g_judge_base_url)
-        self._judge_sampling_client = service_client.create_sampling_client(model_name=self.g_judge_model_name)
+        # Prefer explicit model_path if provided; otherwise treat name as base_model
+        if self.g_judge_model_path:
+            self._judge_sampling_client = service_client.create_sampling_client(model_path=self.g_judge_model_path)
+        elif self.g_judge_model_name:
+            # Use base_model to allow public HF names
+            self._judge_sampling_client = service_client.create_sampling_client(base_model=self.g_judge_model_name)
+        else:
+            raise ValueError(
+                "LLM judge requires either g_judge_model_path or g_judge_model_name."
+            )
         self._judge_sampling_params = types.SamplingParams(
             max_tokens=self.g_judge_max_tokens,
             temperature=self.g_judge_temperature,

@@ -114,10 +114,10 @@ def main(config: Config):
     for ckpt_path in ckpt_paths:
         if ckpt_path == "baseline":
             logger.info(f"Evaluating baseline model...")
-            sampling_client = service_client.create_sampling_client(model_name=training_config.model_name)
+            sampling_client = service_client.create_sampling_client(training_config.model_name)
         else:
             logger.info(f"Evaluating model from checkpoint: {ckpt_path}...")
-            sampling_client = service_client.create_sampling_client(model_name=ckpt_path)
+            sampling_client = service_client.create_sampling_client(ckpt_path)
 
         ckpt_f_vals = []
         ckpt_g_vals = []

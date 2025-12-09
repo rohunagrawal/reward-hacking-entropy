@@ -39,7 +39,7 @@ python data/prep_dataset.py \
   - Entry function: ```process_code_result()```. Returns a dictionary with ```g_score``` (compilability) and ```f_score``` (correctness).
   - ```g_type``` options:
     - ```is_compilable```: syntax-only check.
-    - ```llm_judge```: LLM-as-a-judge on compilability (default judge: ```meta-llama/Llama-3.2-3B```, override via config/CLI).
+    - ```llm_judge```: LLM-as-a-judge on compilability. Provide either a Tinker model path (```g_judge_model_path=tinker://...```) or a base model name (```g_judge_model_name=...```, e.g., ```meta-llama/Llama-3.2-3B```).
   - ```check_correctness()```: use SandBox Fusion. Fall back to prime_code if SandBox Fusion is not available.
   - Training reward defaults to ```g_score``` only.
 
