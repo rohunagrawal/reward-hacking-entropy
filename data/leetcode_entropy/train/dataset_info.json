@@ -1,0 +1,152 @@
+{
+  "builder_name": "json",
+  "citation": "",
+  "config_name": "default",
+  "dataset_name": "leet_code_dataset",
+  "dataset_size": 92704967,
+  "description": "",
+  "download_checksums": {
+    "hf://datasets/newfacade/LeetCodeDataset@215604aeed660029df7de2fea5a4d7b6ed476a08/LeetCodeDataset-train.jsonl": {
+      "num_bytes": 93643427,
+      "checksum": null
+    },
+    "hf://datasets/newfacade/LeetCodeDataset@215604aeed660029df7de2fea5a4d7b6ed476a08/LeetCodeDataset-test.jsonl": {
+      "num_bytes": 7464335,
+      "checksum": null
+    }
+  },
+  "download_size": 101107762,
+  "features": {
+    "task_id": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "question_id": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "difficulty": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "tags": {
+      "feature": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "_type": "List"
+    },
+    "problem_description": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "starter_code": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "estimated_date": {
+      "dtype": "timestamp[s]",
+      "_type": "Value"
+    },
+    "prompt": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "completion": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "entry_point": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "test": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "input_output": {
+      "feature": {
+        "input": {
+          "dtype": "string",
+          "_type": "Value"
+        },
+        "output": {
+          "dtype": "string",
+          "_type": "Value"
+        }
+      },
+      "_type": "List"
+    },
+    "query": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "response": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "import_prefix": {
+      "dtype": "string",
+      "_type": "Value"
+    },
+    "test_inputs_outputs": {
+      "fn_name": {
+        "dtype": "string",
+        "_type": "Value"
+      },
+      "inputs": {
+        "feature": {
+          "dtype": "string",
+          "_type": "Value"
+        },
+        "_type": "List"
+      },
+      "outputs": {
+        "feature": {
+          "dtype": "string",
+          "_type": "Value"
+        },
+        "_type": "List"
+      }
+    },
+    "init_rollout_entropy": {
+      "dtype": "float64",
+      "_type": "Value"
+    },
+    "entropy_bin": {
+      "dtype": "int64",
+      "_type": "Value"
+    },
+    "entropy_bin_label": {
+      "names": [
+        "1",
+        "2",
+        "3"
+      ],
+      "_type": "ClassLabel"
+    }
+  },
+  "homepage": "",
+  "license": "",
+  "size_in_bytes": 193812729,
+  "splits": {
+    "train": {
+      "name": "train",
+      "num_bytes": 85925908,
+      "num_examples": 2641,
+      "dataset_name": "leet_code_dataset"
+    },
+    "test": {
+      "name": "test",
+      "num_bytes": 6779059,
+      "num_examples": 228,
+      "dataset_name": "leet_code_dataset"
+    }
+  },
+  "version": {
+    "version_str": "0.0.0",
+    "major": 0,
+    "minor": 0,
+    "patch": 0
+  }
+}

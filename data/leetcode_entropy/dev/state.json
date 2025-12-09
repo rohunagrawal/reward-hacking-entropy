@@ -1,0 +1,33 @@
+{
+  "_data_files": [
+    {
+      "filename": "data-00000-of-00001.arrow"
+    }
+  ],
+  "_fingerprint": "242ed7a6ba6aa0b3",
+  "_format_columns": [
+    "completion",
+    "difficulty",
+    "entropy_bin",
+    "entropy_bin_label",
+    "entry_point",
+    "estimated_date",
+    "import_prefix",
+    "init_rollout_entropy",
+    "input_output",
+    "problem_description",
+    "prompt",
+    "query",
+    "question_id",
+    "response",
+    "starter_code",
+    "tags",
+    "task_id",
+    "test",
+    "test_inputs_outputs"
+  ],
+  "_format_kwargs": {},
+  "_format_type": null,
+  "_output_all_columns": false,
+  "_split": "train"
+}
