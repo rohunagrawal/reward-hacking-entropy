@@ -18,13 +18,14 @@ export TINKER_API_KEY=...
 ```
 
 # Prepare dataset
+- model_name_path and bin_num only matter if filter_by==init_rollout_entropy
+```bash
+python data/prep_dataset.py \
+    filter_by=difficulty \
+    train_ratio=0.8 \   
+    model_name_path="meta-llama/Llama-3.2-3B" \       
+    bin_num=3
 ```
-python data/prep_dataset.py
-```
-- Split size:
-  - Easy: 638
-  - Medium: 1397
-  - Hard: 606
 
 # Reward Function for Coding
 - Host [SandBox Fusion](https://bytedance.github.io/SandboxFusion/docs/docs/get-started#local-deployment) (create a sandbox to test code safely):
@@ -58,13 +59,20 @@ bash train.sh
   - If you use the same log_path, the code will try to read in latest_checkpoint.txt and resume from there.
 
 # Get f & g of ckpts on held-out dataset
-- Run:
+- Run: The script will read in model_name, filter_by and filter_difficulty from the config.json used during training to load the corresponding model and held out dataset.
   ```bash
+  export PYTHONPATH=:${PYTHONPATH}
+
+  YOUR_PORT_NUMBER=8000
+  eval_batch_size=16
+  
+  # docker run -it -p $YOUR_PORT_NUMBER:8080 volcengine/sandbox-fusion:server-20250609
+  # docker run -it -p 8001:8080 volcengine/sandbox-fusion:server-20250609
+  
   python analysis/measure_f_g_on_heldout.py \
-      dataset_path="data/leetcode" \
-      training_output_dir="outputs/rl-leetcode/llama-3.2-1b/Easy" \
-      sandbox_url="http://localhost:YOUR_PORT_NUMBER/run_code" \
-      eval_batch_size=16
+      training_output_dir="outputs/rl-leetcode/meta-llama/Llama-3.2-3B/100f_plus_g/Easy" \
+      sandbox_url="http://localhost:$YOUR_PORT_NUMBER" \
+      eval_batch_size=$eval_batch_size
   ```
 - Expected outputs:
   - ```${training_output_dir}/avg_heldout_f_g_scores.json```: 
@@ -76,7 +84,7 @@ bash train.sh
     ```
   - ```${training_output_dir}/heldout_g_minus_f_scores.png```
 - TODOs:
-  - [ ] Set held out dataset path
-  - [ ] Check config loading
+  - [x] Set held out dataset path
+  - [x] Check config loading
   - [ ] tokenizer renderer
   - [ ] Consider running ckpts in parallel (depends on bottleneck from checking code solution)

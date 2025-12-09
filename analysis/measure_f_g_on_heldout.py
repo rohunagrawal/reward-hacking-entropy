@@ -2,20 +2,16 @@ import logging
 import json
 import os
 from concurrent.futures import Future
-from typing import List, Dict, Any
 
 import chz
 import datasets
 import tinker
-import torch
 from tinker import types
-from tinker.types.tensor_data import TensorData
 from transformers import AutoTokenizer
-import wandb
 import numpy as np
 
 from reward_function.leetcode import LeetCode
-from train import SimpleRenderer
+from train import SimpleRenderer, TrainingConfig
 
 # Setup logging
 logging.basicConfig(
@@ -31,7 +27,7 @@ logging.getLogger("httpx").setLevel(logging.WARN)
 
 @chz.chz
 class Config:
-    dataset_path: str = "data/leetcode"  # TODO: change to heldout dataset path
+    dataset_path: str = "data/leetcode"  # Contains held-out dev set; should be prepared with prep_dataset.py
     training_output_dir: str = "outputs/rl-leetcode/llama-3.2-1b/Easy"  # where config, checkpoint_names.txt and latest_checkpoint.txt are stored
     sandbox_url: str = "http://localhost:8000/run_code"
     eval_batch_size: int = 16
@@ -57,12 +53,15 @@ def plot_scores_across_checkpoints(scores, ckpt_names, output_fn: str, y_label: 
 
 def main(config: Config):
     with open(os.path.join(config.training_output_dir, "config.json"), "r") as f:
-        training_config = chz.from_json(f.read(), dict)  # TODO check
+        # Remove keys that start with "X_" and "wandb_run_name" (init_property)
+        config_dict = json.load(f)
+        config_dict = {k: v for k, v in config_dict.items() if not k.startswith("X_") and k != "wandb_run_name"}
+        training_config = TrainingConfig(**config_dict)
 
     # Get tokenizer and renderer
     logger.info(f"Loading tokenizer for {training_config.model_name}...")
     tokenizer = AutoTokenizer.from_pretrained(training_config.model_name)
-    renderer = SimpleRenderer(tokenizer)        # TODO check
+    renderer = SimpleRenderer(tokenizer)
 
     # Load held-out dataset
     logger.info(f"Loading held-out dataset from {config.dataset_path}...")
@@ -73,9 +72,15 @@ def main(config: Config):
         return
 
     if isinstance(dataset, datasets.DatasetDict):
-        dataset = dataset["test"]
+        dataset = dataset["dev"]
     else:
         dataset = dataset
+
+    # Filter by difficulty if specified
+    if training_config.filter_by == "difficulty":
+        logger.info(f"Filtering dataset for difficulty: {training_config.filter_difficulty}")
+        dataset = dataset.filter(lambda x: x["difficulty"] == training_config.filter_difficulty)
+
     n_train_batches = len(dataset) // config.eval_batch_size
 
     # Initialize Reward Function

@@ -31,7 +31,7 @@ logging.getLogger("httpx").setLevel(logging.WARN)
 
 
 @chz.chz
-class Config:
+class TrainingConfig:
     base_url: str | None = None
     log_path: str = "outputs/rl-leetcode/llama-3.2-1b"
     model_name: str = "Qwen/Qwen3-4B-Instruct-2507"
@@ -45,6 +45,7 @@ class Config:
     max_tokens: int = 1024
     sandbox_url: str = "http://localhost:8000/run_code"
     dataset_path: str = "data/leetcode"
+    filter_by: str = "difficulty" # difficulty, init_rollout_entropy
     filter_difficulty: str | None = None # e.g., "Easy", "Medium", "Hard"
     max_train_samples: int | None = 600     # Based on split size of leetcode: Easy: 638 | Medium: 1397 | Hard: 606. Keep each bin to have the same sample size
     seed: int = 42
@@ -117,7 +118,7 @@ def log_metrics(metrics: Dict[str, float], step: int, log_dir: str):
         logger.warning(f"wandb logging failed: {e}")
 
 
-def main(config: Config):
+def main(config: TrainingConfig):
     logger.info(f"Starting training with config: {config}")
     set_seed(config.seed)
 
@@ -138,9 +139,9 @@ def main(config: Config):
         train_dataset = dataset["train"]
     else:
         train_dataset = dataset
-    
+
     # Filter by difficulty if specified
-    if config.filter_difficulty:
+    if config.filter_by == "difficulty":
         logger.info(f"Filtering dataset for difficulty: {config.filter_difficulty}")
         train_dataset = train_dataset.filter(lambda x: x["difficulty"] == config.filter_difficulty)
     
@@ -380,7 +381,8 @@ def main(config: Config):
             metrics["reward/mean"] = sum(batch_rewards) / len(batch_rewards) if batch_rewards else 0.0
             metrics["reward/correctness_f"] = sum(batch_correctness) / len(batch_correctness) if batch_correctness else 0.0
             metrics["reward/compilable_g"] = sum(batch_compilable) / len(batch_compilable) if batch_compilable else 0.0
-            metrics["reward/f_minus_g"] = np.mean(np.array(batch_correctness) - np.array(batch_compilable)).item() if batch_correctness and batch_compilable else 0.0
+            # metrics["reward/f_minus_g"] = np.mean(np.array(batch_correctness) - np.array(batch_compilable)).item() if batch_correctness and batch_compilable else 0.0
+            metrics["reward/g_minus_f"] = np.mean(np.array(batch_compilable) - np.array(batch_correctness)).item() if batch_correctness and batch_compilable else 0.0
             metrics["policy/entropy"] = sum(batch_entropies) / len(batch_entropies) if batch_entropies else 0.0
             
             log_metrics(metrics, step=step, log_dir=config.log_path)

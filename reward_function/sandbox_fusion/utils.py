@@ -118,9 +118,9 @@ def call_sandbox_api(
 
     for attempt in range(MAX_RETRIES):
         try:
-            logger.info(
-                f"{log_prefix}Attempt {attempt + 1}/{MAX_RETRIES}: Calling sandbox API at {sandbox_fusion_url}"
-            )  # <-- Use internal log_prefix
+            # logger.info(
+            #     f"{log_prefix}Attempt {attempt + 1}/{MAX_RETRIES}: Calling sandbox API at {sandbox_fusion_url}"
+            # )  # <-- Use internal log_prefix
             response = requests.post(
                 sandbox_fusion_url,
                 headers=headers,
@@ -140,7 +140,7 @@ def call_sandbox_api(
                     # Simple linear increase: delay = INITIAL_RETRY_DELAY * (attempt + 1)
                     # Exponential backoff: delay = INITIAL_RETRY_DELAY * (2 ** attempt)
                     delay = INITIAL_RETRY_DELAY * (attempt + 1)  # Using linear increase for simplicity
-                    logger.info(f"{log_prefix}Retrying after {delay} seconds...")  # <-- Use internal log_prefix
+                    # logger.info(f"{log_prefix}Retrying after {delay} seconds...")  # <-- Use internal log_prefix
                     time.sleep(delay)
                 continue  # Go to the next retry attempt
 
@@ -148,9 +148,9 @@ def call_sandbox_api(
             response.raise_for_status()
 
             # If successful (status code 2xx)
-            logger.info(
-                f"{log_prefix}Sandbox API call successful on attempt {attempt + 1}"
-            )  # <-- Use internal log_prefix
+            # logger.info(
+            #     f"{log_prefix}Sandbox API call successful on attempt {attempt + 1}"
+            # )  # <-- Use internal log_prefix
             return response.json(), None
 
         except requests.exceptions.RequestException as e:
@@ -187,7 +187,7 @@ def _process_single_case(
     """Helper function to process a single test case."""
     api_response = None
     error_msg = None
-    logger.info(f"Processing test case {case_index + 1}.")
+    # logger.info(f"Processing test case {case_index + 1}.")
 
     current_generation_code = generation
 
@@ -477,7 +477,7 @@ def check_correctness(
         metadata_list: A list containing metadata dictionaries for each test case,
                        ordered corresponding to the inputs.
     """
-    logger.info("Starting correctness check for generation.")
+    # logger.info("Starting correctness check for generation.")
 
     if not in_outs or "inputs" not in in_outs or "outputs" not in in_outs:
         logger.warning("Invalid in_outs format provided.")
@@ -578,5 +578,5 @@ def check_correctness(
                 else:  # If future completed but result is overridden
                     metadata_list[i]["status"] = "compile_error_skipped"
 
-    logger.info(f"Correctness check finished. Results: {results}")
+    # logger.info(f"Correctness check finished. Results: {results}")
     return results, metadata_list
