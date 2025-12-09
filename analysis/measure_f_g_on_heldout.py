@@ -31,6 +31,7 @@ class Config:
     training_output_dir: str = "outputs/rl-leetcode/llama-3.2-1b/Easy"  # where config, checkpoint_names.txt and latest_checkpoint.txt are stored
     sandbox_url: str = "http://localhost:8000/run_code"
     eval_batch_size: int = 16
+    eval_ckpt_num: int = 10
 
 
 def plot_scores_across_checkpoints(scores, ckpt_names, output_fn: str, y_label: str, title: str):
@@ -93,6 +94,11 @@ def main(config: Config):
     ckpt_paths = ["baseline"]
     with open(os.path.join(config.training_output_dir, "checkpoint_names.txt"), "r") as f:
         ckpt_paths += [line.strip() for line in f.readlines() if line.strip()]
+    # Given eval_ckpt_num, sample evenly from ckpt_paths
+    if config.eval_ckpt_num < len(ckpt_paths):
+        step_size = int(len(ckpt_paths) / config.eval_ckpt_num)
+        ckpt_paths = [ckpt_paths[int(i * step_size)] for i in range(config.eval_ckpt_num)]
+
     sampling_params = tinker.types.SamplingParams(
         max_tokens=training_config.max_tokens,
         stop=renderer.get_stop_sequences(),
