@@ -35,6 +35,7 @@ class TrainingConfig:
     base_url: str | None = None
     log_path: str = "outputs/rl-leetcode/llama-3.2-1b"
     model_name: str = "Qwen/Qwen3-4B-Instruct-2507"
+    reward_type: str | None = None     # g, f_g, 100f_g
     epochs: int = 5
     batch_size: int = 64
     group_size: int = 16
@@ -142,9 +143,9 @@ def main(config: TrainingConfig):
 
     # Filter by difficulty if specified
     if config.filter_by == "difficulty":
-        logger.info(f"Filtering dataset for difficulty: {config.filter_difficulty}")
         train_dataset = train_dataset.filter(lambda x: x["difficulty"] == config.filter_difficulty)
-    
+        logger.info(f"Filtering dataset for difficulty: {config.filter_difficulty} -> {len(train_dataset)} samples")
+
     # Limit training samples if specified
     if config.max_train_samples is not None and len(train_dataset) > config.max_train_samples:
         logger.info(f"Limiting training dataset from {len(train_dataset)} to {config.max_train_samples} samples")
@@ -327,8 +328,15 @@ def main(config: TrainingConfig):
 
                     # Total reward (can be weighted combination, for now just g)
                     # reward = f_score + 0.5 * g_score
-                    reward = g_score
-                    
+                    if config.reward_type == "g":
+                        reward = g_score
+                    elif config.reward_type == "f_g":
+                        reward = f_score + g_score
+                    elif config.reward_type == "100f_g":
+                        reward = 100 * f_score + g_score
+                    else:
+                        raise ValueError(f"Unknown reward type: {config.reward_type}")
+
                     group_rewards.append(reward)
                     group_correctness.append(f_score)
                     group_compilable.append(g_score)
@@ -379,8 +387,8 @@ def main(config: TrainingConfig):
             # Log metrics (once per batch)
             metrics["time/total"] = time.time() - t_start
             metrics["reward/mean"] = sum(batch_rewards) / len(batch_rewards) if batch_rewards else 0.0
-            metrics["reward/correctness_f"] = sum(batch_correctness) / len(batch_correctness) if batch_correctness else 0.0
-            metrics["reward/compilable_g"] = sum(batch_compilable) / len(batch_compilable) if batch_compilable else 0.0
+            metrics["reward/f"] = sum(batch_correctness) / len(batch_correctness) if batch_correctness else 0.0
+            metrics["reward/g"] = sum(batch_compilable) / len(batch_compilable) if batch_compilable else 0.0
             # metrics["reward/f_minus_g"] = np.mean(np.array(batch_correctness) - np.array(batch_compilable)).item() if batch_correctness and batch_compilable else 0.0
             metrics["reward/g_minus_f"] = np.mean(np.array(batch_compilable) - np.array(batch_correctness)).item() if batch_correctness and batch_compilable else 0.0
             metrics["policy/entropy"] = sum(batch_entropies) / len(batch_entropies) if batch_entropies else 0.0
