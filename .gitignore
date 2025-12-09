@@ -3,6 +3,10 @@
 .venv/
 wandb/
 data/leetcode/
+data/leetcode_entropy/
+
+**__pycache__**
+
 
 reward_function/__pycache__/
 reward_function/sandbox_fusion/__pycache__/
