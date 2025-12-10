@@ -3,3 +3,4 @@ tqdm==4.67.1
 tinker==0.5.1
 wandb==0.23.0
 chz==0.4.0
+matplotlib==3.10.7

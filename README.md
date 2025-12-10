@@ -65,29 +65,39 @@ bash train.sh
 - Run: The script will read in model_name, filter_by and filter_difficulty from the config.json used during training to load the corresponding model and held out dataset.
   ```bash
   export PYTHONPATH=:${PYTHONPATH}
-
+  
   YOUR_PORT_NUMBER=8000
   eval_batch_size=16
   
   # docker run -it -p $YOUR_PORT_NUMBER:8080 volcengine/sandbox-fusion:server-20250609
   # docker run -it -p 8001:8080 volcengine/sandbox-fusion:server-20250609
   
+  training_output_dir="outputs/rl-leetcode/meta-llama/Llama-3.2-3B/g/Easy"
+  do_baseline=True    # Can just run baseline once FOR EACH BIN. The result will be saved under training_output_dir
+  baseline_result_fn="outputs/rl-leetcode/meta-llama/Llama-3.2-3B/g/Easy/baseline/outputs.jsonl"   # provide the path here FOR EACH BIN when do_baseline=False to avoid recomputing baseline. (Lorena: I"m being lazy :\)
+  
   python analysis/measure_f_g_on_heldout.py \
-      training_output_dir="outputs/rl-leetcode/meta-llama/Llama-3.2-3B/100f_plus_g/Easy" \
-      sandbox_url="http://localhost:$YOUR_PORT_NUMBER" \
-      eval_batch_size=$eval_batch_size
+      training_output_dir=${training_output_dir} \
+      sandbox_url="http://localhost:$YOUR_PORT_NUMBER/run_code" \
+      eval_batch_size=$eval_batch_size \
+      do_baseline=$do_baseline \
+      baseline_result_fn=${baseline_result_fn}
   ```
 - Expected outputs:
-  - ```${training_output_dir}/avg_heldout_f_g_scores.json```: 
+  - If do_baseline=True:
+    - Sampling outputs: ```${training_output_dir}/heldout_outputs/baseline_outputs.jsonl```
+    - f/g scores: ```${training_output_dir}/baseline_avg_heldout_f_g_scores.json```
+  - Sampling outputs: ```${training_output_dir}/heldout_outputs/${ckpt_path}/outputs.jsonl```
+  - f/g scores: ```${training_output_dir}/avg_heldout_f_g_scores.json```: 
     ```json
     {
+        "baseline": {"avg_f": 0, "avg_g": 0, "avg_g_minus_f": 0},     // if do_baseline=False, will try to read from baseline_result_fn
         "checkpoint_name_1": {"avg_f": 0, "avg_g": 0, "avg_g_minus_f": 0},
         "checkpoint_name_2": {...}
     }
     ```
-  - ```${training_output_dir}/heldout_g_minus_f_scores.png```
-- TODOs:
-  - [x] Set held out dataset path
-  - [x] Check config loading
-  - [ ] tokenizer renderer
-  - [ ] Consider running ckpts in parallel (depends on bottleneck from checking code solution)
+  - Plot of g-f scores across baseline and ckpts: ```${training_output_dir}/heldout_g_minus_f_scores.png```
+- Can replot baseline & ckpts scores with:
+  ```
+  plot_scores(os.path.join("outputs/rl-leetcode/meta-llama/Llama-3.2-3B/g/Easy", "avg_heldout_f_g_scores.json"))
+  ```
