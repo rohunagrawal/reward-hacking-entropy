@@ -215,13 +215,16 @@ def main(config: Config):
     # Save/load baseline results
     if not config.do_baseline:
         # Try to read in baseline results
-        baseline_metrics_path = os.path.join(config.training_output_dir, "baseline_avg_heldout_f_g_scores.json")
-        if os.path.exists(baseline_metrics_path):
+        baseline_metrics_path = config.baseline_result_fn
+        if not os.path.exists(baseline_metrics_path):
+            logger.error(f"Baseline results file not found at {baseline_metrics_path}. Try reading from the training output dir instead.")
+            baseline_metrics_path = os.path.join(config.training_output_dir, "baseline_avg_heldout_f_g_scores.json")
+        if not os.path.exists(baseline_metrics_path):
+            logger.warning(f"Baseline results not found at {baseline_metrics_path}. Skipping baseline comparison.")
+        else:
             with open(baseline_metrics_path, "r") as f:
                 baseline_results = json.load(f)
             ckpt_to_avg_f_g_vals["baseline"] = baseline_results
-        else:
-            logger.warning(f"Baseline results not found at {baseline_metrics_path}. Skipping baseline comparison.")
     else:
         # Save baseline separately
         baseline_metrics_path = os.path.join(config.training_output_dir, "baseline_avg_heldout_f_g_scores.json")
@@ -243,7 +246,8 @@ def main(config: Config):
     )
 
 
-def plot_scores(avg_heldout_f_g_scores_json_fn: str):
+def plot_scores(config: Config):
+    avg_heldout_f_g_scores_json_fn = os.path.join(config.training_output_dir, "avg_heldout_f_g_scores.json")
     # read in scores
     with open(avg_heldout_f_g_scores_json_fn, "r") as f:
         ckpt_to_avg_f_g_vals = json.load(f)
@@ -257,5 +261,5 @@ def plot_scores(avg_heldout_f_g_scores_json_fn: str):
     )
 
 if __name__ == "__main__":
-    chz.nested_entrypoint(main)
-    # plot_scores(os.path.join("outputs/rl-leetcode/meta-llama/Llama-3.2-3B/g/Easy", "avg_heldout_f_g_scores.json"))
+    # chz.nested_entrypoint(main)
+    chz.nested_entrypoint(plot_scores)
