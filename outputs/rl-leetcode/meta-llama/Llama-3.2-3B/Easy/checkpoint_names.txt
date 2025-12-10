@@ -1,6 +1,0 @@
-tinker://66118f9c-f908-5c49-bc19-c13d2ee28543:train:0/weights/outputs_rl-leetcode_meta-llama_Llama-3.2-3B_Easy_checkpoint_000001
-tinker://4ad3975e-ad3b-59f6-8406-398e711b7625:train:0/weights/outputs_rl-leetcode_meta-llama_Llama-3.2-3B_Easy_checkpoint_000001
-tinker://4ad3975e-ad3b-59f6-8406-398e711b7625:train:0/weights/outputs_rl-leetcode_meta-llama_Llama-3.2-3B_Easy_checkpoint_000002
-tinker://4ad3975e-ad3b-59f6-8406-398e711b7625:train:0/weights/outputs_rl-leetcode_meta-llama_Llama-3.2-3B_Easy_checkpoint_000003
-tinker://4ad3975e-ad3b-59f6-8406-398e711b7625:train:0/weights/outputs_rl-leetcode_meta-llama_Llama-3.2-3B_Easy_checkpoint_000004
-tinker://4ad3975e-ad3b-59f6-8406-398e711b7625:train:0/weights/outputs_rl-leetcode_meta-llama_Llama-3.2-3B_Easy_final
