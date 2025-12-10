@@ -261,5 +261,5 @@ def plot_scores(config: Config):
     )
 
 if __name__ == "__main__":
-    # chz.nested_entrypoint(main)
-    chz.nested_entrypoint(plot_scores)
+    chz.nested_entrypoint(main)
+    # chz.nested_entrypoint(plot_scores)
