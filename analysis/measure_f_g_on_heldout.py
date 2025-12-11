@@ -42,7 +42,15 @@ def plot_scores_across_checkpoints(scores, output_fn: str, y_label: str, title: 
     import matplotlib.pyplot as plt
     # Sort scores by key names
     scores = dict(sorted(scores.items(), key=lambda item: item[0]))
-    step_names = [name.split("_checkpoint_")[-1].lstrip("0") if name != "baseline" else "baseline" for name in scores.keys()]
+    step_names = []
+    for name in scores.keys():
+        if name == "baseline":
+            step_names.append("baseline")
+        elif "_final" in name:
+            step_names.append("final")
+        else:
+            step_names.append(name.split("_checkpoint_")[-1].lstrip("0"))
+
     step_scores = [scores[name][score_name] for name in scores.keys()]
 
     plt.figure(figsize=(10, 6))
@@ -268,5 +276,5 @@ def plot_scores(config: Config):
     )
 
 if __name__ == "__main__":
-    chz.nested_entrypoint(main)
-    # chz.nested_entrypoint(plot_scores)
+    # chz.nested_entrypoint(main)
+    chz.nested_entrypoint(plot_scores)
