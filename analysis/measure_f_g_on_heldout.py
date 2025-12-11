@@ -29,7 +29,7 @@ logging.getLogger("httpx").setLevel(logging.WARN)
 @chz.chz
 class Config:
     dataset_path: str = "data/leetcode"  # Contains held-out dev set; should be prepared with prep_dataset.py
-    split_name: str = "train"
+    split_name: str = "dev"
     training_output_dir: str = "outputs/rl-leetcode/llama-3.2-1b/Easy"  # where config, checkpoint_names.txt and latest_checkpoint.txt are stored
     sandbox_url: str = "http://localhost:8000/run_code"
     eval_batch_size: int = 16
@@ -135,7 +135,8 @@ def main(config: Config):
             training_client = service_client.create_lora_training_client(
                 base_model=training_config.model_name, rank=training_config.lora_rank
             )
-            sampling_client = training_client.save_weights_and_get_sampling_client(name=ckpt_path)
+            training_client.load_state(ckpt_path)
+            sampling_client = training_client.save_weights_and_get_sampling_client(name=ckpt_path.rsplit("/", 1)[-1])
 
         ckpt_f_vals = []
         ckpt_g_vals = []
