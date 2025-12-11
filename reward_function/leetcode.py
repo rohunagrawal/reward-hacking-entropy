@@ -88,7 +88,7 @@ class LeetCode:
         )
         self._judge_tokenizer = AutoTokenizer.from_pretrained(self.g_judge_model_name)
 
-    def _llm_judge_score(self, code_solution: str) -> float:
+    def _llm_judge_score(self, code_solution: str, problem_description: str | None = None) -> float:
         """
         Ask an LLM to judge whether the code is likely to compile/run.
         Returns 1.0 if the model responds with a leading '1'/'yes', else 0.0.
@@ -100,13 +100,15 @@ class LeetCode:
             return 0.0
 
         prompt = (
-            "You are a strict Python code judge. "
-            "Reply with '1' if the code will compile and run without syntax errors "
-            "and is a plausible implementation of the intended function. "
-            "Reply with '0' if it is likely to fail or is incomplete. "
-            "Only output a single digit 1 or 0.\n\n"
-            f"Code:\n{code_solution}\n\nAnswer:"
+            "You are a strict coding evaluator. "
+            "Given the problem description and the Python code, reply with EXACTLY one character: "
+            "'1' if the code correctly solves the problem for its described inputs/outputs; "
+            "'0' if the code is likely incorrect or incomplete. "
+            "Do not explain. Only output a single digit 1 or 0.\n\n"
         )
+        if problem_description:
+            prompt += f"Problem:\n{problem_description}\n\n"
+        prompt += f"Code:\n{code_solution}\n\nAnswer:"
 
         input_ids = self._judge_tokenizer.encode(prompt, add_special_tokens=False)
         model_input = types.ModelInput.from_ints(tokens=input_ids)
@@ -119,13 +121,14 @@ class LeetCode:
             )
             sample_result = future.result()
             sampled_tokens = sample_result.sequences[0].tokens
-            text = self._judge_tokenizer.decode(sampled_tokens, skip_special_tokens=True).strip().lower()
-            if text.startswith("1") or text.startswith("yes"):
+            text = self._judge_tokenizer.decode(sampled_tokens, skip_special_tokens=True).strip()
+            text_lower = text.lower()
+            if text_lower.startswith("1") or text_lower.startswith("yes"):
                 return 1.0
-            if text.startswith("0") or text.startswith("no"):
+            if text_lower.startswith("0") or text_lower.startswith("no"):
                 return 0.0
             # Fallback: check for digits anywhere
-            return 1.0 if "1" in text and "0" not in text else 0.0
+            return 1.0 if "1" in text_lower and "0" not in text_lower else 0.0
         except Exception as e:
             logger.error(f"LLM judge scoring failed: {e}")
             return 0.0
@@ -176,7 +179,7 @@ class LeetCode:
             if g_type == "is_compilable":
                 res["g_score"] = self.is_compilable(code_solution)
             elif g_type == "llm_judge":
-                res["g_score"] = self._llm_judge_score(code_solution)
+                res["g_score"] = self._llm_judge_score(code_solution, res.get("query"))
             else:
                 # TODO: may change to llm as a judge or other weak reward models
                 raise ValueError(f"Unsupported g_type: {g_type}")

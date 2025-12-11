@@ -29,6 +29,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 logging.getLogger("httpx").setLevel(logging.WARN)
 
+TRAIN_STATE_FILENAME = "training_state.json"
+
 
 @chz.chz
 class TrainingConfig:
@@ -125,6 +127,33 @@ def log_metrics(metrics: Dict[str, float], step: int, log_dir: str):
         logger.warning(f"wandb logging failed: {e}")
 
 
+def load_training_state(log_path: str):
+    state_path = os.path.join(log_path, TRAIN_STATE_FILENAME)
+    if not os.path.exists(state_path):
+        return None
+    try:
+        with open(state_path, "r") as f:
+            return json.load(f)
+    except Exception as e:
+        logger.warning(f"Failed to load training state from {state_path}: {e}")
+        return None
+
+
+def save_training_state(log_path: str, epoch: int, batch_idx: int, step: int):
+    os.makedirs(log_path, exist_ok=True)
+    state_path = os.path.join(log_path, TRAIN_STATE_FILENAME)
+    state = {
+        "epoch": epoch,
+        "batch_idx": batch_idx,
+        "step": step,
+    }
+    try:
+        with open(state_path, "w") as f:
+            json.dump(state, f)
+    except Exception as e:
+        logger.warning(f"Failed to save training state to {state_path}: {e}")
+
+
 def main(config: TrainingConfig):
     logger.info(f"Starting training with config: {config}")
     set_seed(config.seed)
@@ -199,6 +228,20 @@ def main(config: TrainingConfig):
     n_train_batches = len(train_dataset) // config.batch_size
     logger.info(f"Training for {config.epochs} epochs, {n_train_batches} batches per epoch")
 
+    # Load training state if it exists
+    start_epoch = 0
+    start_batch_idx = 0
+    step = 0
+    loaded_state = load_training_state(config.log_path)
+    if loaded_state is not None:
+        start_epoch = int(loaded_state.get("epoch", 0))
+        start_batch_idx = int(loaded_state.get("batch_idx", 0))
+        step = int(loaded_state.get("step", 0))
+        logger.info(f"Resuming from training state: epoch={start_epoch}, batch_idx={start_batch_idx}, step={step}")
+    if start_epoch >= config.epochs:
+        logger.info("Training already completed according to saved state.")
+        return
+
     # Setup training client
     service_client = tinker.ServiceClient(base_url=config.base_url)
     
@@ -236,11 +279,14 @@ def main(config: TrainingConfig):
     except Exception as e:
         logger.warning(f"Failed to save config to {config_json_path}: {e}")
 
-    #  Main training loop
-    step = 0
-    for epoch in range(0, config.epochs):
+    #  Main training loop (supports resume)
+    for epoch in range(start_epoch, config.epochs):
+        if epoch > start_epoch:
+            start_batch_idx = 0  # reset after first resumed epoch
         logger.info(f"Starting epoch {epoch + 1}/{config.epochs}")
-        for batch_idx in range(0, n_train_batches):
+        if start_batch_idx >= n_train_batches:
+            continue
+        for batch_idx in range(start_batch_idx, n_train_batches):
             t_start = time.time()
             metrics: dict[str, float] = {
                 "progress/epoch": epoch,
@@ -428,11 +474,22 @@ def main(config: TrainingConfig):
             
             step += 1
 
+            # Save training state for resume
+            if batch_idx + 1 >= n_train_batches:
+                next_epoch = epoch + 1
+                next_batch_idx = 0
+            else:
+                next_epoch = epoch
+                next_batch_idx = batch_idx + 1
+            save_training_state(config.log_path, epoch=next_epoch, batch_idx=next_batch_idx, step=step)
+
     # Save final checkpoint
     logger.info("Saving final checkpoint...")
     final_ckpt_path = training_client.save_state(f"{config.log_path.replace('/', '_')}_final").result().path
     with open(os.path.join(config.log_path, f"checkpoint_names.txt"), "a") as f:
         f.write(final_ckpt_path + "\n")
+    # Save final training state
+    save_training_state(config.log_path, epoch=config.epochs, batch_idx=0, step=step)
     logger.info("Training completed")
     # Finish wandb run if it was started
     try:

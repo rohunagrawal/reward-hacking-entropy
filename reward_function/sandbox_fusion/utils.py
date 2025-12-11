@@ -23,10 +23,10 @@ from typing import Any, Optional
 
 import requests
 
-DEFAULT_TIMEOUT = 10  # Default compile and run timeout
+DEFAULT_TIMEOUT = 60  # Default compile and run timeout (was 10)
 MAX_RETRIES = 3
 INITIAL_RETRY_DELAY = 1
-API_TIMEOUT = 10
+API_TIMEOUT = 60  # Default API timeout in seconds (was 10)
 
 logger = logging.getLogger(__name__)
 
@@ -510,7 +510,7 @@ def check_correctness(
     first_compile_error_index = -1
 
     # max_workers is limited by sandbox_fusion_max_concurrent from concurrent_semaphore
-    with concurrent.futures.ThreadPoolExecutor(max_workers=max(32, os.cpu_count() * 5)) as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max(8, os.cpu_count())) as executor:
         # Submit all tasks, passing the concurrent_semaphore to _process_single_case
         future_to_index = {
             executor.submit(
