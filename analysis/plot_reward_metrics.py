@@ -90,26 +90,8 @@ def main():
         for i, (label, df) in enumerate(data):
             if metric_key not in df:
                 continue
-            steps = df["step"]
-            y_raw = df[metric_key]
-            # EMA smoothing
-            y_ema = y_raw.ewm(span=10, adjust=False).mean()
-            # Local variability band (rolling std)
-            y_std = y_raw.rolling(window=10, min_periods=1).std().fillna(0)
-            upper = (y_ema + y_std).clip(lower=0)
-            lower = (y_ema - y_std).clip(lower=0)
-
-            color = colors[i % len(colors)]
-            ax.plot(steps, y_ema, label=label, color=color, linewidth=2.2, alpha=0.95)
-            ax.fill_between(
-                steps,
-                lower,
-                upper,
-                color=color,
-                alpha=0.18,
-                linewidth=0,
-            )
-        ax.set_title(title, fontsize=12, fontweight="bold")
+            ax.plot(df["step"], df[metric_key], label=label, color=colors[i % len(colors)], linewidth=1.8, alpha=0.9)
+        ax.set_title(title, fontsize=11, fontweight="bold")
         ax.set_xlabel("Step", fontsize=10)
         ax.set_ylabel(metric_key.split("/")[-1], fontsize=10)
         ax.grid(True, linestyle="--", alpha=0.3)
@@ -120,7 +102,7 @@ def main():
 
     os.makedirs("figures", exist_ok=True)
     out_path = os.path.join("figures", "reward_comparison.png")
-    fig.savefig(out_path, dpi=300, bbox_inches="tight")
+    fig.savefig(out_path, dpi=200)
     print(f"Saved plot to {out_path}")
 
 
